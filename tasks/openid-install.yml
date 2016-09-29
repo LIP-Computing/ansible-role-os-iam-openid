@@ -1,0 +1,76 @@
+---
+#- name: Install mod_auth_openidc
+#  yum: name=https://github.com/pingidentity/mod_auth_openidc/releases/download/v2.0.0/mod_auth_openidc-2.0.0-1.el7.centos.x86_64.rpm state=present
+#
+#- name: Install docker engine.
+#  shell: LoadModule auth_openidc_module /usr/lib/apache2/modules/mod_auth_openidc.so
+
+- name: Add Keystone Apache configuration
+  blockinfile:
+    dest: '/home/jorge/borrar/wsgi-keystone.conf'
+    #dest: '/etc/httpd/conf.d/wsgi-keystone.conf'
+    insertafter: '<VirtualHost *:5000>'
+    block: |
+        OIDCClaimPrefix                 "OIDC-"
+        OIDCResponseType                "code"
+        OIDCScope                       "openid email profile"
+        OIDCProviderMetadataURL         https://iam-test.indigo-datacloud.eu/.well-known/openid-configuration
+        OIDCClientID                    {{ openstack_iam_cli_id }}
+        OIDCClientSecret                {{ openstack_iam_cli_secret }}
+        OIDCProviderTokenEndpointAuth   client_secret_basic
+        OIDCCryptoPassphrase            {{ openstack_iam_passphrase }}
+        OIDCRedirectURI                 {{ openstack_iam_redirect }}
+
+        # The JWKs URL on which the Authorization publishes the keys used to sign its JWT access tokens.
+        # When not defined local validation of JWTs can still be done using statically configured keys,
+        # by setting OIDCOAuthVerifyCertFiles and/or OIDCOAuthVerifySharedKeys.
+        OIDCOAuthVerifyJwksUri "https://iam-test.indigo-datacloud.eu/jwk"
+
+        <Location ~ "/v3/auth/OS-FEDERATION/websso/oidc">
+            AuthType  openid-connect
+            Require   valid-user
+            LogLevel  debug
+        </Location>
+
+        <Location ~ "/v3/OS-FEDERATION/identity_providers/indigo-dc/protocols/oidc/auth">
+            AuthType     oauth20
+            Require   valid-user
+            LogLevel    debug
+        </Location>
+
+- name: Ensure sso_callback_template.html exist
+  template: src={{ item.src }} dest={{ item.dest }} backup=yes
+  with_items:
+    - { src: 'sso_callback_template.html.j2', dest: '/etc/keystone/sso_callback_template.html' }
+
+- name: Add auth Keystone configuration
+  blockinfile:
+    dest: '/home/jorge/borrar/keystone.conf'
+    #dest: '/etc/keystone/keystone.conf'
+    insertafter: '[auth]'
+    block: |
+        oidc = keystone.auth.plugins.mapped.Mapped
+
+- name: Configure keystone.
+  lineinfile: >
+    # dest=/etc/keystone/keystone.conf
+    dest: '/home/jorge/borrar/keystone.conf'
+    regexp="{{ item.regexp }}"
+    line="{{ item.line }}"
+    state=present
+  with_items:
+    - { regexp: "^#?methods", line: 'methods = external,password,token,oauth1,oidc' }
+    - { regexp: "^#?remote_id_attribute", line: 'remote_id_attribute = HTTP_OIDC_ISS'}
+    - { regexp: "^#?trusted_dashboard", line: 'trusted_dashboard = "https://{{ openstack_controper_ip }}/dashboard/auth/websso/"'}
+    - { regexp: "^#?sso_callback_template", line: 'sso_callback_template = /etc/keystone/sso_callback_template.html'}
+
+- name: Add oidc Keystone configuration
+  blockinfile:
+    #dest: '/etc/keystone/keystone.conf'
+    dest: '/home/jorge/borrar/keystone.conf'
+    insertbefore: '[auth]'
+    block: |
+      [oidc]
+      remote_id_attribute = HTTP_OIDC_ISS
+
+

@@ -1,0 +1,10 @@
+---
+# defaults file for ansible-role-os-iam-openid
+
+openstack_controller_host: "openstack-all-in-1"
+openstack_iam_cli_id: xxx
+openstack_iam_cli_secret: XXX
+openstack_iam_url: https://iam-test.indigo-datacloud.eu/register/xxxx
+openstack_iam_token: xxxxx
+openstack_iam_redirect: http://exampple.org:5000/v3/auth/OS-FEDERATION/websso/oidc/redirect
+openstack_iam_passphrase: "openstack"

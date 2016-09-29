@@ -1,0 +1,53 @@
+---
+#- name: 'Create indigo_group'
+#  command: openstack group create indigo_group --description "INDIGO Federated users group"
+#  ignore_errors: True
+#  run_once: True
+#
+#- name: 'Create indigo project'
+#  command: openstack project create indigo --description "INDIGO project"
+#  ignore_errors: True
+#  run_once: True
+#
+#- name: 'Grant user roles to the whole indigo_group into the indigo project'
+#  command: openstack role add user --group indigo_group --project indigo
+#  ignore_errors: True
+#  run_once: True
+#
+#- name: Copy indigo_mapping
+#  vars:
+#    - indigo_group_id: check group id
+#  template: src={{ item.src }} dest={{ item.dest }} backup=yes
+#  with_items:
+#    - { src: 'indigo_mapping.json.j2', dest: '/tmp/indigo_mapping.json' }
+#
+#- name: 'Load the mapping'
+#  command: openstack mapping create indigo_mapping --rules indigo_mapping.json
+#  ignore_errors: True
+#  run_once: True
+#
+#- name: 'Create indigo identity provider'
+#  command: openstack identity provider create indigo-dc --remote-id https://iam-test.indigo-datacloud.eu/
+#  ignore_errors: True
+#  run_once: True
+#
+#- name: 'Create indigo protocol'
+#  command:   command: openstack federation protocol create oidc --identity-provider indigo-dc --mapping indigo_mapping
+#  ignore_errors: True
+#  run_once: True
+
+
+- name: Configure horizon.
+  lineinfile: >
+    #dest=/etc/openstack-dashboard/local_settings
+    dest = /home/jorge/borrar/local_settings
+    regexp="{{ item.regexp }}"
+    line="{{ item.line }}"
+    state=present
+  with_items:
+    - { regexp: "^#?WEBSSO_ENABLED", line: 'WEBSSO_ENABLED= True'
+    - { regexp: "^#?WEBSSO_INITIAL_CHOICE", line: 'WEBSSO_INITIAL_CHOICE="credentials"'
+    - { regexp: "^#?WEBSSO_INITIAL_CHOICE", line: 'WEBSSO_CHOICES = ( ("credentials", _("Keystone Credentials")),("oidc", _("INDIGO-DataCloud IAM")))'
+
+
+
