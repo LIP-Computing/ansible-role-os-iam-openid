@@ -4,6 +4,7 @@
 openstack_controller_host: "openstack-all-in-1"
 openstack_admin_password: "openstack"
 openstack_controller_ip: 127.0.0.1
+openstack_public_ip: xxxx
 openstack_iam_cli_id: xxx
 openstack_iam_cli_secret: XXX
 openstack_iam_url: https://iam-test.indigo-datacloud.eu/register/xxxx
