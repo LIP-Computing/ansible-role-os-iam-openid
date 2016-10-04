@@ -1,12 +1,28 @@
 ---
+- name: 'Check indigo_group exists'
+  register: os_indigo_group_id
+  command: openstack group show -c id -f value indigo_group
+  run_once: True
+  ignore_errors: True
+  environment: "{{ admin_auth_env }}"
+
 - name: 'Create indigo_group'
   command: openstack group create indigo_group --description "INDIGO Federated users group"
   run_once: True
+  when: os_indigo_group_id|failed
+  environment: "{{ admin_auth_env }}"
+
+- name: 'Check indigo exists'
+  register: os_indigo_project
+  command: openstack project show -c id -f value indigo
+  run_once: True
+  ignore_errors: True
   environment: "{{ admin_auth_env }}"
 
 - name: 'Create indigo project'
   command: openstack project create indigo --description "INDIGO project"
   run_once: True
+  when: os_indigo_project|failed
   environment: "{{ admin_auth_env }}"
 
 - name: 'Grant user roles to the whole indigo_group into the indigo project'
@@ -27,19 +43,43 @@
   with_items:
     - { src: 'indigo_mapping.json.j2', dest: '/tmp/indigo_mapping.json' }
 
+- name: 'Check indigo_mapping exists'
+  register: os_indigo_mapping
+  command: openstack mapping show indigo_mapping
+  run_once: True
+  ignore_errors: True
+  environment: "{{ admin_auth_env }}"
+
 - name: 'Load the mapping'
   command: openstack mapping create indigo_mapping --rules /tmp/indigo_mapping.json
   run_once: True
+  when: os_indigo_mapping|failed
+  environment: "{{ admin_auth_env }}"
+
+- name: 'Check indigo-dc provider exists'
+  register: os_indigo_provider
+  command: openstack identity provider show indigo-dc
+  run_once: True
+  ignore_errors: True
   environment: "{{ admin_auth_env }}"
 
 - name: 'Create indigo identity provider'
   command: openstack identity provider create indigo-dc --remote-id https://iam-test.indigo-datacloud.eu/
   run_once: True
+  when: os_indigo_provider|failed
+  environment: "{{ admin_auth_env }}"
+
+- name: 'Check indigo-dc oidc protocol exists'
+  register: os_indigo_protocol
+  command: openstack federation protocol show oidc --identity-provider indigo-dc
+  run_once: True
+  ignore_errors: True
   environment: "{{ admin_auth_env }}"
 
 - name: 'Create indigo protocol'
   command: openstack federation protocol create oidc --identity-provider indigo-dc --mapping indigo_mapping
   run_once: True
+  when: os_indigo_protocol|failed
   environment: "{{ admin_auth_env }}"
 
 - name: Configure horizon.
