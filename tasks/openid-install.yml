@@ -58,7 +58,7 @@
     - { regexp: "^\\[auth\\]", line: "[auth]\noidc = keystone.auth.plugins.mapped.Mapped" }
     - { regexp: "^#?methods", line: "methods = external,password,token,oauth1,oidc" }
     - { regexp: "^#?remote_id_attribute", line: 'remote_id_attribute = HTTP_OIDC_ISS'}
-    - { regexp: "^#?trusted_dashboard", line: 'trusted_dashboard = "https://{{ openstack_public_ip }}/dashboard/auth/websso/"'}
+    - { regexp: "^#?trusted_dashboard", line: 'trusted_dashboard = "https://{{ openstack_controller_public_ip }}/dashboard/auth/websso/"'}
     - { regexp: "^#?sso_callback_template", line: 'sso_callback_template = /etc/keystone/sso_callback_template.html'}
 
 - name: Add oidc Keystone configuration
