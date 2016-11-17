@@ -1,0 +1,26 @@
+---
+# defaults file for ansible-role-os-iam-openid
+
+openstack_controller_host: "openstack-all-in-1"
+openstack_admin_password: "openstack"
+openstack_controller_ip: 127.0.0.1
+openstack_controller_public_ip: xxxx
+openstack_iam_cli_id: xxx
+openstack_iam_cli_secret: XXX
+openstack_iam_url: https://iam-test.indigo-datacloud.eu/register/xxxx
+openstack_iam_token: xxxxx
+openstack_iam_redirect: http://exampple.org:5000/v3/auth/OS-FEDERATION/websso/oidc/redirect
+openstack_iam_passphrase: "openstack"
+
+openstack_os_url: "http://{{ openstack_controller_host }}:35357/v3"
+openstack_os_identity_api_version: "3"
+
+admin_auth_env:
+  OS_PROJECT_DOMAIN_ID: default
+  OS_USER_DOMAIN_ID: default
+  OS_PROJECT_NAME: admin
+  OS_TENANT_NAME: admin
+  OS_USERNAME: admin
+  OS_PASSWORD: "{{ openstack_admin_password }}"
+  OS_AUTH_URL: "{{ openstack_os_url }}"
+  OS_IDENTITY_API_VERSION: "{{ openstack_os_identity_api_version }}"
