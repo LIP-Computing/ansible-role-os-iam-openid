@@ -30,7 +30,7 @@
   run_once: True
   environment: "{{ admin_auth_env }}"
 
-- name: 'Grant user roles to the whole indigo_group into the indigo project'
+- name: 'Get the id of the indigo group'
   register: os_indigo_group_id
   command: openstack group show -c id -f value indigo_group
   run_once: True
@@ -76,7 +76,7 @@
   ignore_errors: True
   environment: "{{ admin_auth_env }}"
 
-- name: 'Create indigo protocol'
+- name: 'Create indigo federation protocol'
   command: openstack federation protocol create oidc --identity-provider indigo-dc --mapping indigo_mapping
   run_once: True
   when: os_indigo_protocol|failed
@@ -93,7 +93,7 @@
     - { regexp: "^#?WEBSSO_INITIAL_CHOICE", line: 'WEBSSO_INITIAL_CHOICE="credentials"' }
     - { regexp: "^#?WEBSSO_CHOICES", line: 'WEBSSO_CHOICES = ( ("credentials", _("Keystone Credentials")),("oidc", _("INDIGO-DataCloud IAM")))'}
 
-- name: Start http daemon.
+- name: Restart http daemon.
   service: "name={{ item }} enabled=yes state=restarted"
   with_items:
     - httpd
